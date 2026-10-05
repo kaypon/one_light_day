@@ -59,7 +59,7 @@ export function Hero() {
       <div className={s.grid}>
         <div className={s.copy}>
           <h1 id="hero-title" className={s.title}>
-            Voyager 1 is {after ? "more than" : "about to be"}{" "}
+            Voyager 1 is {showStamp ? "officially" : after ? "more than" : "about to be"}{" "}
             <span className={s.nowrap}>one light-day</span> from Earth.
           </h1>
 
