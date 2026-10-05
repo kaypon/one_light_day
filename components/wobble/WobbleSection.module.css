@@ -1,0 +1,317 @@
+.section {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter);
+  border-top: 1px solid var(--ink);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: clamp(1rem, 4vw, 3.5rem);
+  align-items: end;
+}
+
+.title {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: var(--t-h2);
+  line-height: 1;
+}
+
+.intro {
+  max-width: 58ch;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin-top: 2rem;
+  align-items: start;
+}
+
+.diagramCol,
+.chartCol {
+  min-width: 0;
+}
+
+/* ---- Orbit diagram ---- */
+
+.diagramBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.diagram {
+  display: block;
+  touch-action: none;
+  cursor: grab;
+  overflow: visible;
+}
+
+.diagram:active {
+  cursor: grabbing;
+}
+
+.orbit {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.tick {
+  stroke: var(--muted);
+  stroke-width: 1;
+}
+
+.sun {
+  fill: var(--ink);
+}
+
+.voyagerRay {
+  stroke: var(--signal);
+  stroke-width: 1.5;
+}
+
+.arrowSignal {
+  fill: var(--signal);
+}
+
+.arrowInk {
+  fill: var(--ink);
+}
+
+.motion {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.earth {
+  cursor: grab;
+  outline: none;
+}
+
+.earth:focus-visible .earthBody {
+  stroke: var(--signal-text);
+  stroke-width: 2.5;
+}
+
+.earthHit {
+  fill: transparent;
+}
+
+.earthBody {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.earthCross {
+  stroke: var(--ink);
+  stroke-width: 1.3;
+}
+
+.hint {
+  margin-top: 0.4rem;
+  font-size: var(--t-small);
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---- Chart ---- */
+
+.chartBox {
+  position: relative;
+  width: 100%;
+}
+
+.chartBox svg {
+  display: block;
+  overflow: visible;
+}
+
+.grid {
+  stroke: var(--faint);
+  stroke-width: 1;
+}
+
+.axisText {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--muted);
+}
+
+.labelText {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--ink);
+}
+
+.dip {
+  fill: var(--muted);
+  opacity: 0.12;
+}
+
+.threshold {
+  stroke: var(--signal);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+}
+
+.series {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.crossing {
+  fill: var(--signal);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.cursor {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.cursorDot {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.hit {
+  fill: transparent;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.tooltip {
+  position: absolute;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  font-size: var(--t-small);
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tooltip strong {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: var(--t-lead);
+}
+
+.tooltip span {
+  color: var(--muted);
+}
+
+/* ---- Controls and readout ---- */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  margin-top: 1rem;
+}
+
+.sliderLabel {
+  font-size: var(--t-small);
+  color: var(--muted);
+  min-width: 11rem;
+}
+
+.sliderLabel strong {
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.slider {
+  flex: 1;
+  min-width: 12rem;
+  accent-color: var(--ink);
+}
+
+.buttons {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.button {
+  min-height: 2rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--ink);
+  background: transparent;
+  font-size: var(--t-small);
+  cursor: pointer;
+}
+
+.button:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.readout {
+  margin-top: 1.1rem;
+  padding: 0.9rem 1.1rem 1rem;
+  border: 1px solid var(--ink);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.readoutValue {
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  line-height: 1.15;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.table {
+  margin-top: 1.25rem;
+  font-size: var(--t-small);
+}
+
+.table summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.table table {
+  margin-top: 0.75rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 0.3rem 1.25rem 0.3rem 0;
+  border-bottom: 1px solid var(--faint);
+  text-align: left;
+  font-weight: 400;
+}
+
+.table th {
+  color: var(--muted);
+}
+
+@media (max-width: 860px) {
+  .head,
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

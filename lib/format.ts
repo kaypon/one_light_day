@@ -77,7 +77,7 @@ export function formatLightDistance(km: number): string {
 export function formatDelay(sec: number): string {
   if (sec < 60) return `${sec.toFixed(2)} seconds`;
   if (sec >= 365.25 * 86_400) return `about ${(sec / 31_557_600).toFixed(1)} years`;
-  const s = Math.floor(sec);
+  const s = Math.round(sec);
   const h = Math.floor(s / 3600);
   const m = Math.floor(s / 60) % 60;
   return h > 0 ? `${h}h ${pad(m, 2)}m ${pad(s % 60, 2)}s` : `${m}m ${pad(s % 60, 2)}s`;

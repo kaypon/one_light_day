@@ -97,10 +97,14 @@ describe("formatLightDistance", () => {
 describe("formatDelay", () => {
   it("reads naturally from seconds up to years", () => {
     expect(formatDelay(1.29)).toBe("1.29 seconds");
-    expect(formatDelay(410.7)).toBe("6m 50s");
-    expect(formatDelay(5 * 3600 + 36 * 60 + 36.6)).toBe("5h 36m 36s");
-    expect(formatDelay(28 * 3600 + 25 * 60 + 37.8)).toBe("28h 25m 37s");
+    expect(formatDelay(410.7)).toBe("6m 51s");
+    expect(formatDelay(5 * 3600 + 36 * 60 + 36.6)).toBe("5h 36m 37s");
+    expect(formatDelay(28 * 3600 + 25 * 60 + 37.8)).toBe("28h 25m 38s");
     expect(formatDelay(2.27 * 31_557_600)).toBe("about 2.3 years");
+  });
+
+  it("rounds to the nearest second, so a light-day reads as exactly 24 hours", () => {
+    expect(formatDelay(86_399.99999)).toBe("24h 00m 00s");
   });
 });
 

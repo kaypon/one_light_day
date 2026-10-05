@@ -2,6 +2,8 @@ import { DsnPanel } from "@/components/dsn/DsnPanel";
 import { Hero } from "@/components/Hero";
 import { Method } from "@/components/Method";
 import { PingSection } from "@/components/ping/PingSection";
+import { LagTimeline } from "@/components/timeline/LagTimeline";
+import { WobbleSection } from "@/components/wobble/WobbleSection";
 import s from "./page.module.css";
 
 export default function Page() {
@@ -21,6 +23,8 @@ export default function Page() {
         <Hero />
         <PingSection />
         <DsnPanel />
+        <WobbleSection />
+        <LagTimeline />
         <Method />
       </main>
     </>

@@ -1,0 +1,238 @@
+.section {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) var(--gutter);
+  border-top: 1px solid var(--ink);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: clamp(1rem, 4vw, 3.5rem);
+  align-items: end;
+}
+
+.title {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: var(--t-h2);
+  line-height: 1;
+}
+
+.intro {
+  max-width: 54ch;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1fr) minmax(0, 1.1fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  margin-top: 2rem;
+  align-items: start;
+}
+
+/* Sticky readout that follows the chapter being read. */
+.panel {
+  position: sticky;
+  top: 1.25rem;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.panelLabel {
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+.panelValue {
+  margin-top: 0.2rem;
+  font-family: var(--display);
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.gauge {
+  position: relative;
+  margin-top: 0.9rem;
+  padding-bottom: 1.4rem;
+}
+
+.gaugeTrack {
+  height: 10px;
+  border: 1px solid var(--ink);
+}
+
+.gaugeFill {
+  height: 100%;
+  background: var(--ink);
+  transition: width 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.gaugeTick {
+  position: absolute;
+  top: 14px;
+  translate: -50% 0;
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.gaugeTick::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  height: 5px;
+  border-left: 1px solid var(--muted);
+}
+
+.gaugeTick:first-of-type {
+  translate: 0 0;
+}
+
+.gaugeTick:first-of-type::before {
+  left: 0;
+}
+
+.gaugeTick:last-of-type {
+  translate: -100% 0;
+}
+
+.longView {
+  position: relative;
+  margin-top: 0.6rem;
+}
+
+.longView svg {
+  display: block;
+  overflow: visible;
+}
+
+.grid {
+  stroke: var(--faint);
+  stroke-width: 1;
+}
+
+.axisText {
+  font-family: var(--mono);
+  font-size: 10px;
+  fill: var(--muted);
+}
+
+.series {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.mark {
+  fill: var(--ink);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.markActive {
+  fill: var(--signal);
+  stroke: var(--paper);
+  stroke-width: 2;
+}
+
+.cursor {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.hit {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+.tooltip {
+  position: absolute;
+  translate: -50% -100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  font-size: var(--t-small);
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tooltip strong {
+  font-weight: 400;
+  font-family: var(--display);
+}
+
+.tooltip span {
+  color: var(--muted);
+}
+
+.chapters {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chapter {
+  padding: 1.1rem 0 1.25rem 1.1rem;
+  border-left: 1px solid var(--faint);
+  min-height: 9rem;
+}
+
+.current {
+  border-left: 3px solid var(--signal);
+  padding-left: calc(1.1rem - 2px);
+}
+
+.when {
+  font-family: var(--display);
+  font-size: var(--t-lead);
+  line-height: 1.2;
+}
+
+.text {
+  margin-top: 0.3rem;
+  max-width: 52ch;
+}
+
+.delay {
+  margin-top: 0.35rem;
+  font-size: var(--t-small);
+  color: var(--muted);
+}
+
+@media (max-width: 860px) {
+  .head,
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* On phones the panel rides along at the top, compact. */
+  .panel {
+    top: 0;
+    z-index: 1;
+    padding: 0.7rem 0.9rem 0.4rem;
+    border-width: 0 0 1px;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
+  }
+
+  .panelValue {
+    font-size: 1.6rem;
+  }
+
+  .longView {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gaugeFill {
+    transition: none;
+  }
+}
