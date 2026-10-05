@@ -93,7 +93,7 @@ Copy voice: direct, a little bite, no corporate sludge, avoid three-part phrasin
   `/projects/[slug]` iframes it. Draft copy for Kevin to edit; optional `caseStudy` later.
 - Optional paragraph in `components/NowEntries.tsx`. Sitemap picks up `/projects/one-light-day` automatically.
 
-## Security (Kevin: "no API keys visible, don't wanna get hacked")
+## Security (requirement: no keys or secrets exposed anywhere)
 - **Only secrets in the whole project:** the Upstash URL/tokens injected by the Marketplace integration, plus a random `PING_SALT`.
   Horizons, DSN Now and Vercel Analytics need no keys.
 - **Server-only:** secrets are read only inside `app/api/*` through `lib/redis.ts`, which has `import "server-only"`, so an
@@ -119,7 +119,6 @@ Copy voice: direct, a little bite, no corporate sludge, avoid three-part phrasin
   patched Next 16 / React 19.2.x and keep `npm audit` clean before deploy.
 - **Vercel:** preview deployments stay behind Vercel Authentication (default); only production is public. A GitHub repo, if any,
   is private or verified secret-free before push.
-- Checked 2026-10-05: kevs_site `.env.local` is gitignored, never committed, and holds only `VERCEL_OIDC_TOKEN`; no `NEXT_PUBLIC_` vars.
 
 ## Build order
 - **M0 setup (today):** suggest `npm i -g vercel@latest` (CLI 59.6.2 is stale). create-next-app in `voyager/`, git init,
