@@ -47,6 +47,37 @@ export function formatDistance(km: number, unit: DistanceUnit): string {
   return `${formatNumber(km, 1)} km`;
 }
 
+/** 85,265,000 ms → "23h 41m". The two largest non-trivial units, floored. */
+export function formatDuration(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(s / 86_400);
+  const h = Math.floor(s / 3_600) % 24;
+  const m = Math.floor(s / 60) % 60;
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s % 60}s`;
+  return `${s}s`;
+}
+
+/** 172,791,400 ms → "47h 59m 51s". Hours never roll into days. */
+export function formatHMS(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 3600)}h ${pad(Math.floor(s / 60) % 60, 2)}m ${pad(s % 60, 2)}s`;
+}
+
+/** "Wed, Nov 18, 5:16:07 AM" in the given zone (default: the visitor's). */
+export function shortMoment(ms: number, timeZone?: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone,
+  }).format(ms);
+}
+
 /** "Wed, Nov 18, 2026, 5:16:07 AM EST" in the given zone (default: the visitor's). */
 export function momentLabel(ms: number, timeZone?: string): string {
   return new Intl.DateTimeFormat("en-US", {

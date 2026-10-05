@@ -1,5 +1,6 @@
 import { Hero } from "@/components/Hero";
 import { Method } from "@/components/Method";
+import { PingSection } from "@/components/ping/PingSection";
 import s from "./page.module.css";
 
 export default function Page() {
@@ -9,12 +10,14 @@ export default function Page() {
         <a href="#" className={s.wordmark}>
           One Light-Day
         </a>
-        <a href="#method" className={s.navLink}>
-          How we know
-        </a>
+        <nav className={s.nav} aria-label="Sections">
+          <a href="#ping">Send a ping</a>
+          <a href="#method">How we know</a>
+        </nav>
       </header>
       <main>
         <Hero />
+        <PingSection />
         <Method />
       </main>
     </>

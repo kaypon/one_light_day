@@ -1,5 +1,5 @@
 import { createHmac } from "node:crypto";
-import { hourStart } from "./pings";
+import { PING_COOLDOWN_SEC, hourStart } from "./pings";
 
 /** The two Redis calls the ping counter needs (an @upstash/redis client satisfies this). */
 export type PingStore = {
@@ -8,7 +8,7 @@ export type PingStore = {
 };
 
 /** One ping per address per this many seconds. */
-export const THROTTLE_SEC = 20;
+export const THROTTLE_SEC = PING_COOLDOWN_SEC;
 /** Stop counting past this many pings a month, so the free Redis tier can't be run dry. */
 export const MONTHLY_CAP = 60_000;
 const HOUR_KEY_TTL_SEC = 50 * 3600;

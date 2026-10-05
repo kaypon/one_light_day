@@ -7,6 +7,8 @@ export type Timeline = { sentAt: number; arrivesAt: number; homeAt: number };
 export type Position = { phase: "outbound" | "reply" | "home"; km: number };
 
 export const MAX_STORED_PINGS = 20;
+/** One ping per visitor per this many seconds (enforced by the server, mirrored in the UI). */
+export const PING_COOLDOWN_SEC = 20;
 export const MAX_NOTE_LENGTH = 80;
 const HOUR_MS = 3_600_000;
 
@@ -81,6 +83,42 @@ export function dotsFromHours(
     for (let i = 0; i < Math.min(count, maxPerHour); i++) out.push(startMs + rand() * span);
   }
   return out;
+}
+
+export type Counts = { total: number; hours: { startMs: number; count: number }[] };
+
+/** Folds your own ping into the shared counts right away, instead of waiting for the next poll. */
+export function withLocalPing(counts: Counts, total: number, nowMs: number): Counts {
+  const current = hourStart(nowMs);
+  const rest = counts.hours.filter((h) => h.startMs !== current);
+  const mine = counts.hours.find((h) => h.startMs === current)?.count ?? 0;
+  return { total, hours: [{ startMs: current, count: mine + 1 }, ...rest] };
+}
+
+/** Hourly counts minus your own pings, so the anonymous dots are everyone else. */
+export function withoutMine(hours: Counts["hours"], mine: Ping[]): Counts["hours"] {
+  const yours = new Map<number, number>();
+  for (const p of mine) yours.set(hourStart(p.sentAt), (yours.get(hourStart(p.sentAt)) ?? 0) + 1);
+  return hours
+    .map((h) => ({ startMs: h.startMs, count: h.count - (yours.get(h.startMs) ?? 0) }))
+    .filter((h) => h.count > 0);
+}
+
+/**
+ * Roughly a day out and a day back: pings under 24 h old are still heading
+ * for Voyager, 24–48 h old are replies on their way home, and everything
+ * older than a day has reached it.
+ */
+export function summarizeCounts(counts: Counts, nowMs: number) {
+  const DAY_MS = 24 * HOUR_MS;
+  let outbound = 0;
+  let returning = 0;
+  for (const { startMs, count } of counts.hours) {
+    const age = nowMs - startMs;
+    if (age < DAY_MS) outbound += count;
+    else if (age < 2 * DAY_MS) returning += count;
+  }
+  return { outbound, returning, reached: Math.max(0, counts.total - outbound) };
 }
 
 const EARLIEST_MS = Date.UTC(2026, 0, 1);

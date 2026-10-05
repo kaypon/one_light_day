@@ -9,6 +9,9 @@ import {
   parseStoredPings,
   pingPosition,
   pingTimeline,
+  summarizeCounts,
+  withLocalPing,
+  withoutMine,
 } from "@/lib/pings";
 
 const eph = { geo: seriesFrom(daily, "geo"), helio: seriesFrom(daily, "helio") };
@@ -100,6 +103,53 @@ describe("parseStoredPings", () => {
 
     const many = JSON.stringify(Array.from({ length: 50 }, (_, i) => ({ id: `p${i}`, sentAt: 1_790_000_000_000 + i })));
     expect(parseStoredPings(many)).toHaveLength(MAX_STORED_PINGS);
+  });
+});
+
+describe("withLocalPing", () => {
+  const nowMs = Date.UTC(2026, 9, 10, 12, 30);
+  const hour = Date.UTC(2026, 9, 10, 12);
+
+  it("adds your ping to the current hour and takes the server's new total", () => {
+    const counts = { total: 10, hours: [{ startMs: hour, count: 2 }] };
+    expect(withLocalPing(counts, 11, nowMs)).toEqual({ total: 11, hours: [{ startMs: hour, count: 3 }] });
+  });
+
+  it("opens a bucket for a new hour", () => {
+    const counts = { total: 5, hours: [{ startMs: hour - HOUR, count: 5 }] };
+    expect(withLocalPing(counts, 6, nowMs).hours[0]).toEqual({ startMs: hour, count: 1 });
+  });
+});
+
+describe("withoutMine", () => {
+  it("takes your own pings out of the anonymous hourly counts", () => {
+    const hour = Date.UTC(2026, 9, 10, 12);
+    const hours = [
+      { startMs: hour, count: 3 },
+      { startMs: hour - HOUR, count: 1 },
+    ];
+    const mine = [
+      { id: "a", sentAt: hour + 60_000 },
+      { id: "b", sentAt: hour - HOUR + 5 },
+      { id: "c", sentAt: hour - 5 * HOUR },
+    ];
+    expect(withoutMine(hours, mine)).toEqual([{ startMs: hour, count: 2 }]);
+  });
+});
+
+describe("summarizeCounts", () => {
+  const nowMs = Date.UTC(2026, 9, 10, 12, 30);
+  const hour = Date.UTC(2026, 9, 10, 12);
+
+  it("splits recent pings into on-the-way-out and on-the-way-back", () => {
+    const counts = {
+      total: 100,
+      hours: [
+        { startMs: hour, count: 4 }, // minutes old: outbound
+        { startMs: hour - 30 * HOUR, count: 6 }, // 30 h old: reply heading home
+      ],
+    };
+    expect(summarizeCounts(counts, nowMs)).toEqual({ outbound: 4, returning: 6, reached: 96 });
   });
 });
 

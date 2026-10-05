@@ -56,6 +56,15 @@ function getSnapshot() {
 
 const getServerSnapshot = () => null;
 
+/**
+ * The page's time right now, read fresh. Use this in event handlers: the
+ * ticker's last value can be stale when the browser has paused animation
+ * frames (background tabs), which would back-date anything stamped with it.
+ */
+export function currentTime(): number {
+  return ensureClock()(Date.now());
+}
+
 export function useNow(): number | null {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MILESTONE_MS } from "@/lib/constants";
-import { formatDistance, formatLightTime, formatNumber, lightTimeParts, momentLabel } from "@/lib/format";
+import { formatDistance, formatDuration, formatHMS, formatLightTime, formatNumber, lightTimeParts, momentLabel, shortMoment } from "@/lib/format";
 
 describe("lightTimeParts", () => {
   it("splits seconds into a 24-hour clock reading plus microseconds", () => {
@@ -43,6 +43,32 @@ describe("formatNumber", () => {
   it("groups thousands and fixes the decimals", () => {
     expect(formatNumber(25_775_637_140.123, 1)).toBe("25,775,637,140.1");
     expect(formatNumber(126_431_231.6, 0)).toBe("126,431,232");
+  });
+});
+
+describe("formatDuration", () => {
+  it("shows the two most useful units", () => {
+    expect(formatDuration(45_000)).toBe("45s");
+    expect(formatDuration(8 * 60_000 + 19_000)).toBe("8m 19s");
+    expect(formatDuration(23 * 3_600_000 + 41 * 60_000 + 5_000)).toBe("23h 41m");
+    expect(formatDuration(47 * 3_600_000 + 59 * 60_000)).toBe("1d 23h");
+  });
+
+  it("never goes negative", () => {
+    expect(formatDuration(-5_000)).toBe("0s");
+  });
+});
+
+describe("formatHMS", () => {
+  it("shows whole hours, minutes and seconds without rolling hours into days", () => {
+    expect(formatHMS((47 * 3600 + 59 * 60 + 51) * 1000 + 400)).toBe("47h 59m 51s");
+    expect(formatHMS(65_000)).toBe("0h 01m 05s");
+  });
+});
+
+describe("shortMoment", () => {
+  it("gives weekday, date and time in the given zone", () => {
+    expect(shortMoment(MILESTONE_MS, "America/New_York")).toMatch(/^Wed, Nov 18, 5:16:07\sAM$/);
   });
 });
 
