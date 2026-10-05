@@ -56,7 +56,7 @@ export default async function Image() {
           </svg>
           <span style={{ marginLeft: 10 }}>EARTH</span>
           <div style={{ display: "flex", flexGrow: 1, height: 2, background: INK, margin: "0 16px" }} />
-          <span style={{ fontFamily: "Display", fontSize: 26, margin: "0 6px" }}>//</span>
+          <span style={{ fontFamily: "Display", fontSize: 26, margin: "0 6px" }}>{"//"}</span>
           <div style={{ display: "flex", flexGrow: 2, height: 2, background: INK, margin: "0 16px" }} />
           <span>VOYAGER 1</span>
           <div
