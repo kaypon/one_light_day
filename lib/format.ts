@@ -1,4 +1,4 @@
-import { AU_KM, KM_PER_MILE } from "./constants";
+import { AU_KM, C_KM_S, KM_PER_MILE } from "./constants";
 
 const pad = (n: number, width: number) => String(n).padStart(width, "0");
 
@@ -57,6 +57,20 @@ export function formatDuration(ms: number): string {
   if (h > 0) return `${h}h ${m}m`;
   if (m > 0) return `${m}m ${s % 60}s`;
   return `${s}s`;
+}
+
+export function formatDataRate(bps: number): string {
+  if (bps < 1_000) return `${Math.round(bps)} bits/s`;
+  if (bps < 1_000_000) return `${(bps / 1_000).toFixed(1)} kbit/s`;
+  return `${(bps / 1_000_000).toFixed(1)} Mbit/s`;
+}
+
+/** 244,000,000 km → "13.6 light-minutes": distance as the time light needs to cross it. */
+export function formatLightDistance(km: number): string {
+  const sec = km / C_KM_S;
+  if (sec < 60) return `${sec.toFixed(1)} light-seconds`;
+  if (sec < 3_600) return `${(sec / 60).toFixed(1)} light-minutes`;
+  return `${(sec / 3_600).toFixed(1)} light-hours`;
 }
 
 /** 172,791,400 ms → "47h 59m 51s". Hours never roll into days. */

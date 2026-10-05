@@ -12,10 +12,13 @@
   font-size: var(--t-lead);
   line-height: 1;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem 1.25rem;
   font-size: var(--t-small);
 }

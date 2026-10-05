@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { MAX_STORED_PINGS, parseStoredPings, withLocalPing, type Counts, type Ping } from "./pings";
+import { usePolledJson } from "./usePolledJson";
 
 // ---- Your pings: kept in this browser only. ----
 
@@ -52,33 +53,7 @@ function isCounts(data: unknown): data is Counts {
 }
 
 export function useGlobalPings() {
-  const [counts, setCounts] = useState<Counts | null>(null);
-
-  useEffect(() => {
-    let live = true;
-    const load = () => {
-      fetch("/api/pings")
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (live && isCounts(data)) setCounts(data);
-        })
-        .catch(() => {}); // counter is a bonus; the page works without it
-    };
-    // Always once on mount (even in a background tab), then only while visible.
-    load();
-    const id = window.setInterval(() => {
-      if (!document.hidden) load();
-    }, POLL_MS);
-    const onVisibility = () => {
-      if (!document.hidden) load();
-    };
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      live = false;
-      window.clearInterval(id);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, []);
+  const { data: counts, setData: setCounts } = usePolledJson("/api/pings", isCounts, POLL_MS);
 
   /** Counts the ping globally. Resolves false when the server declines (throttle, cap, outage). */
   const report = useCallback(async () => {
@@ -91,7 +66,7 @@ export function useGlobalPings() {
     } catch {
       return false;
     }
-  }, []);
+  }, [setCounts]);
 
   return { counts, report };
 }

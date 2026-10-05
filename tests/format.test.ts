@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { MILESTONE_MS } from "@/lib/constants";
-import { formatDistance, formatDuration, formatHMS, formatLightTime, formatNumber, lightTimeParts, momentLabel, shortMoment } from "@/lib/format";
+import {
+  formatDataRate,
+  formatDistance,
+  formatDuration,
+  formatHMS,
+  formatLightDistance,
+  formatLightTime,
+  formatNumber,
+  lightTimeParts,
+  momentLabel,
+  shortMoment,
+} from "@/lib/format";
 
 describe("lightTimeParts", () => {
   it("splits seconds into a 24-hour clock reading plus microseconds", () => {
@@ -63,6 +74,22 @@ describe("formatHMS", () => {
   it("shows whole hours, minutes and seconds without rolling hours into days", () => {
     expect(formatHMS((47 * 3600 + 59 * 60 + 51) * 1000 + 400)).toBe("47h 59m 51s");
     expect(formatHMS(65_000)).toBe("0h 01m 05s");
+  });
+});
+
+describe("formatDataRate", () => {
+  it("picks bits, kilobits or megabits per second", () => {
+    expect(formatDataRate(160)).toBe("160 bits/s");
+    expect(formatDataRate(28_440)).toBe("28.4 kbit/s");
+    expect(formatDataRate(1_500_000)).toBe("1.5 Mbit/s");
+  });
+});
+
+describe("formatLightDistance", () => {
+  it("says how long light takes to cover a distance, in the unit that reads best", () => {
+    expect(formatLightDistance(384_400)).toBe("1.3 light-seconds");
+    expect(formatLightDistance(244_000_000)).toBe("13.6 light-minutes");
+    expect(formatLightDistance(25_800_000_000)).toBe("23.9 light-hours");
   });
 });
 
