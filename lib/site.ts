@@ -7,4 +7,4 @@ export const PORTFOLIO_URL = "https://kevdotnet.vercel.app";
 
 export const SITE_TITLE = "One Light-Day";
 export const SITE_DESCRIPTION =
-  "On Nov 18, 2026, Voyager 1 becomes the first thing we've built to sit a full day of light away from Earth. A live countdown, straight from JPL's trajectory data.";
+  "Voyager 1 hits one light-day from Earth on Nov 18, 2026, the first thing we've built to get that far. A live clock and a light-speed ping, straight from JPL's trajectory data.";

@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     siteName: SITE_TITLE,
-    title: "Voyager 1 is about to be one light-day from Earth",
+    title: "Voyager 1: one light-day from Earth",
     description: SITE_DESCRIPTION,
     url: "/",
     type: "website",
