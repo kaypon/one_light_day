@@ -84,8 +84,77 @@ async function writeJson(relPath: string, data: unknown) {
   console.log(`wrote ${relPath}`);
 }
 
+/** Timeline chapters: exact distances at these moments (UT). Copy lives in the timeline component. */
+const EVENTS: { id: string; at: string }[] = [
+  { id: "launch", at: "1977-09-06T00:00:00Z" }, // first moment Horizons has; launch was 12:56 UT the day before
+  { id: "overtakes", at: "1977-12-15T00:00:00Z" },
+  { id: "jupiter", at: "1979-03-05T12:05:00Z" },
+  { id: "saturn", at: "1980-11-12T23:46:00Z" },
+  { id: "pale-blue-dot", at: "1990-02-14T04:48:00Z" },
+  { id: "farthest", at: "1998-02-17T00:00:00Z" },
+  { id: "termination-shock", at: "2004-12-16T00:00:00Z" },
+  { id: "heliopause", at: "2012-08-25T00:00:00Z" },
+  { id: "thrusters", at: "2017-11-28T00:00:00Z" },
+  { id: "glitch", at: "2023-11-14T00:00:00Z" },
+  { id: "fixed", at: "2024-04-20T00:00:00Z" },
+  { id: "light-day", at: "2026-11-18T10:16:07Z" },
+  { id: "voyager-2", at: "2035-11-15T00:00:00Z" },
+];
+
+async function eventVectors(center: string): Promise<Row[]> {
+  const jds = EVENTS.map((e) => (Date.parse(e.at) / MS_PER_DAY + JD_UNIX_EPOCH).toFixed(9));
+  const params = new URLSearchParams({
+    format: "text",
+    COMMAND: "'-31'",
+    OBJ_DATA: "'NO'",
+    MAKE_EPHEM: "'YES'",
+    EPHEM_TYPE: "'VECTORS'",
+    CENTER: `'${center}'`,
+    TLIST: jds.map((jd) => `'${jd}'`).join(" "),
+    TLIST_TYPE: "'JD'",
+    VEC_TABLE: "'4'",
+    VEC_CORR: "'NONE'",
+    OUT_UNITS: "'KM-S'",
+    TIME_TYPE: "'UT'",
+    CSV_FORMAT: "'YES'",
+  });
+  const res = await fetch(`${API}?${params}`);
+  const text = await res.text();
+  if (!text.includes("$$SOE")) throw new Error(`Horizons events failed: ${text.slice(0, 400)}`);
+  const body = text.slice(text.indexOf("$$SOE") + 5, text.indexOf("$$EOE"));
+  return body
+    .trim()
+    .split("\n")
+    .map((line) => {
+      const cols = line.split(",").map((c) => c.trim());
+      return {
+        ms: Math.round((Number(cols[0]) - JD_UNIX_EPOCH) * MS_PER_DAY),
+        rangeKm: Number(cols[6]),
+        rateKmS: Number(cols[7]),
+      };
+    });
+}
+
+async function writeEvents(source: string) {
+  const [geo, helio] = await Promise.all([eventVectors(CENTERS.geo), eventVectors(CENTERS.helio)]);
+  if (geo.length !== EVENTS.length || helio.length !== EVENTS.length) {
+    throw new Error(`expected ${EVENTS.length} event rows, got ${geo.length}/${helio.length}`);
+  }
+  await writeJson("data/events.json", {
+    source,
+    events: EVENTS.map((e, i) => ({
+      id: e.id,
+      ms: Date.parse(e.at),
+      geoKm: Math.round(geo[i].rangeKm),
+      helioKm: Math.round(helio[i].rangeKm),
+    })),
+  });
+}
+
 async function main() {
   const source = "JPL Horizons, target -31 (Voyager 1), geometric vectors (VEC_CORR=NONE), UT";
+  if (process.argv.includes("--events-only")) return writeEvents(source);
+  await writeEvents(source);
 
   // Daily series for the live readouts: 2026 through 2030.
   const [geo, helio] = await Promise.all([

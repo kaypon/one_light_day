@@ -73,6 +73,16 @@ export function formatLightDistance(km: number): string {
   return `${(sec / 3_600).toFixed(1)} light-hours`;
 }
 
+/** A signal delay that reads naturally at any size: "1.29 seconds", "37m 45s", "28h 25m 37s", "about 2.3 years". */
+export function formatDelay(sec: number): string {
+  if (sec < 60) return `${sec.toFixed(2)} seconds`;
+  if (sec >= 365.25 * 86_400) return `about ${(sec / 31_557_600).toFixed(1)} years`;
+  const s = Math.floor(sec);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor(s / 60) % 60;
+  return h > 0 ? `${h}h ${pad(m, 2)}m ${pad(s % 60, 2)}s` : `${m}m ${pad(s % 60, 2)}s`;
+}
+
 /** 172,791,400 ms → "47h 59m 51s". Hours never roll into days. */
 export function formatHMS(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));

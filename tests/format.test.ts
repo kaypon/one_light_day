@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MILESTONE_MS } from "@/lib/constants";
 import {
   formatDataRate,
+  formatDelay,
   formatDistance,
   formatDuration,
   formatHMS,
@@ -90,6 +91,16 @@ describe("formatLightDistance", () => {
     expect(formatLightDistance(384_400)).toBe("1.3 light-seconds");
     expect(formatLightDistance(244_000_000)).toBe("13.6 light-minutes");
     expect(formatLightDistance(25_800_000_000)).toBe("23.9 light-hours");
+  });
+});
+
+describe("formatDelay", () => {
+  it("reads naturally from seconds up to years", () => {
+    expect(formatDelay(1.29)).toBe("1.29 seconds");
+    expect(formatDelay(410.7)).toBe("6m 50s");
+    expect(formatDelay(5 * 3600 + 36 * 60 + 36.6)).toBe("5h 36m 36s");
+    expect(formatDelay(28 * 3600 + 25 * 60 + 37.8)).toBe("28h 25m 37s");
+    expect(formatDelay(2.27 * 31_557_600)).toBe("about 2.3 years");
   });
 });
 
