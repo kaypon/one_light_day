@@ -65,6 +65,14 @@ export function currentTime(): number {
   return ensureClock()(Date.now());
 }
 
-export function useNow(): number | null {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+/** Time rounded down to a resolution (0 = untouched). */
+export const quantize = (t: number, resolutionMs: number) =>
+  resolutionMs > 0 ? Math.floor(t / resolutionMs) * resolutionMs : t;
+
+/**
+ * The page's current time. Components only re-render when the value at their
+ * resolution changes: 0 for every frame, 1000 for once a second, and so on.
+ */
+export function useNow(resolutionMs = 0): number | null {
+  return useSyncExternalStore(subscribe, () => quantize(getSnapshot(), resolutionMs), getServerSnapshot);
 }

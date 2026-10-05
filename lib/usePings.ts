@@ -52,16 +52,23 @@ function isCounts(data: unknown): data is Counts {
   return typeof d?.total === "number" && Array.isArray(d.hours);
 }
 
+/** The total only ever grows, so an older (CDN-cached) snapshot never replaces a newer one. */
+const keepNewest = (prev: Counts | null, next: Counts) => (prev && prev.total > next.total ? prev : next);
+
 export function useGlobalPings() {
-  const { data: counts, setData: setCounts } = usePolledJson("/api/pings", isCounts, POLL_MS);
+  const { data: counts, setData: setCounts } = usePolledJson("/api/pings", isCounts, POLL_MS, keepNewest);
 
   /** Counts the ping globally. Resolves false when the server declines (throttle, cap, outage). */
   const report = useCallback(async () => {
     try {
       const res = await fetch("/api/pings", { method: "POST" });
       if (!res.ok) return false;
-      const { total } = (await res.json()) as { total: number };
-      setCounts((c) => withLocalPing(c ?? { total: 0, hours: [] }, total, Date.now()));
+      const fresh: unknown = await res.json();
+      setCounts((c) =>
+        isCounts(fresh)
+          ? keepNewest(c, fresh)
+          : withLocalPing(c ?? { total: 0, hours: [] }, Number((fresh as { total?: number })?.total) || 0, Date.now()),
+      );
       return true;
     } catch {
       return false;

@@ -17,7 +17,7 @@ function isDsnResponse(data: unknown): data is DsnResponse {
 
 export function DsnPanel() {
   const { data: dsn, failed } = usePolledJson("/api/dsn", isDsnResponse, 60_000);
-  const now = useNow();
+  const now = useNow(1_000);
   const { data: eph } = useEphemeris();
 
   const voyager = dsn?.voyager1 ?? null;

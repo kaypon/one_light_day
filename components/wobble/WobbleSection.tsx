@@ -21,7 +21,7 @@ const clampDay = (ms: number) => Math.min(WINDOW_END, Math.max(WINDOW_START, Mat
 
 export function WobbleSection() {
   const { data } = useEphemeris();
-  const now = useNow();
+  const now = useNow(60_000); // only sets the default date
   const [picked, setPicked] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const selected = picked ?? clampDay(now ?? MILESTONE_MS);

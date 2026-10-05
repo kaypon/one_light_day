@@ -15,6 +15,8 @@ type Props = {
   className?: string;
 };
 
+const ROWS_PER_FRAME = 14;
+
 /**
  * Re-screens a photo as an ink halftone on a canvas. Dot area follows
  * darkness, on a rotated grid, cropped like object-fit: cover. The ink
@@ -57,29 +59,38 @@ export function Halftone({ src, alt, cell = 5, angle = 45, focusX = 0.5, focusY 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
       ctx.fillStyle = getComputedStyle(canvas).color;
-      ctx.beginPath();
 
       const a = (angle * Math.PI) / 180;
       const cos = Math.cos(a);
       const sin = Math.sin(a);
       const reach = Math.hypot(width, height) / 2 + cell;
       const maxR = cell * 0.62; // a touch over half-pitch so solid blacks close up
-      for (let v = -reach; v <= reach; v += cell) {
-        for (let u = -reach; u <= reach; u += cell) {
-          const x = width / 2 + u * cos - v * sin;
-          const y = height / 2 + u * sin + v * cos;
-          if (x < -cell || y < -cell || x > width + cell || y > height + cell) continue;
-          const sx = Math.min(sw - 1, Math.max(0, Math.floor(x / step)));
-          const sy = Math.min(sh - 1, Math.max(0, Math.floor(y / step)));
-          const i = (sy * sw + sx) * 4;
-          const lum = (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) / 255;
-          const r = maxR * Math.sqrt(1 - lum);
-          if (r < 0.35) continue;
-          ctx.moveTo(x + r, y);
-          ctx.arc(x, y, r, 0, Math.PI * 2);
+
+      // Print a band of screen rows per frame: no long main-thread task,
+      // and the photo comes in like a slow transmission.
+      let v = -reach;
+      const band = () => {
+        const stop = Math.min(reach, v + cell * ROWS_PER_FRAME);
+        ctx.beginPath();
+        for (; v <= stop; v += cell) {
+          for (let u = -reach; u <= reach; u += cell) {
+            const x = width / 2 + u * cos - v * sin;
+            const y = height / 2 + u * sin + v * cos;
+            if (x < -cell || y < -cell || x > width + cell || y > height + cell) continue;
+            const sx = Math.min(sw - 1, Math.max(0, Math.floor(x / step)));
+            const sy = Math.min(sh - 1, Math.max(0, Math.floor(y / step)));
+            const i = (sy * sw + sx) * 4;
+            const lum = (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) / 255;
+            const r = maxR * Math.sqrt(1 - lum);
+            if (r < 0.35) continue;
+            ctx.moveTo(x + r, y);
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+          }
         }
-      }
-      ctx.fill();
+        ctx.fill();
+        if (v <= reach) frame = requestAnimationFrame(band);
+      };
+      band();
     };
 
     const schedule = () => {
@@ -87,16 +98,26 @@ export function Halftone({ src, alt, cell = 5, angle = 45, focusX = 0.5, focusY 
       frame = requestAnimationFrame(draw);
     };
 
-    img.onload = () => {
-      if (cancelled) return;
-      observer = new ResizeObserver(schedule);
-      observer.observe(canvas);
-    };
-    img.src = src;
+    // Don't load or draw anything until the photo is about to be seen.
+    const viewport = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        viewport.disconnect();
+        img.onload = () => {
+          if (cancelled) return;
+          observer = new ResizeObserver(schedule);
+          observer.observe(canvas);
+        };
+        img.src = src;
+      },
+      { rootMargin: "200px" },
+    );
+    viewport.observe(canvas);
 
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);
+      viewport.disconnect();
       observer?.disconnect();
     };
   }, [src, cell, angle, focusX, focusY]);

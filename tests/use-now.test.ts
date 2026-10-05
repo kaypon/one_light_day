@@ -13,3 +13,12 @@ describe("currentTime", () => {
     expect(currentTime()).toBe(1_790_000_030_000);
   });
 });
+
+describe("quantize", () => {
+  it("rounds a time down to the subscriber's resolution, or leaves it alone at 0", async () => {
+    const { quantize } = await import("@/lib/useNow");
+    expect(quantize(1_790_000_012_345, 1_000)).toBe(1_790_000_012_000);
+    expect(quantize(1_790_000_012_345, 60_000)).toBe(1_789_999_980_000);
+    expect(quantize(1_790_000_012_345, 0)).toBe(1_790_000_012_345);
+  });
+});

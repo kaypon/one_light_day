@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { C_KM_S } from "@/lib/constants";
 import { sample } from "@/lib/ephemeris";
 import { formatDuration, formatHMS, formatNumber, shortMoment } from "@/lib/format";
@@ -20,7 +20,7 @@ import {
 import { useEphemeris } from "@/lib/useEphemeris";
 import { currentTime, useNow } from "@/lib/useNow";
 import { useGlobalPings, useMyPings } from "@/lib/usePings";
-import { PingTrack, type TrackScale } from "./PingTrack";
+import { PingTrack, type TrackFrame, type TrackScale } from "./PingTrack";
 import s from "./PingSection.module.css";
 
 const SPEEDS = [
@@ -35,8 +35,11 @@ const DAY_MS = 86_400_000;
 type Warp = { factor: number; t0: number; offset0: number };
 const LIVE: Warp = { factor: 1, t0: 0, offset0: 0 };
 
+const EMPTY_FRAME: TrackFrame = { scale: "log", voyagerKm: null, mine: [], others: [] };
+
 export function PingSection() {
-  const realNow = useNow();
+  // Text only needs a few updates a second; the track animates on its own loop.
+  const realNow = useNow(250);
   const { data } = useEphemeris();
   const { pings, add, remove } = useMyPings();
   const { counts, report } = useGlobalPings();
@@ -68,27 +71,30 @@ export function PingSection() {
     [counts, countsMinute, pings],
   );
 
-  const voyager = simNow !== null && data ? sample(data.geo, simNow) : null;
-  const oneWayMs = voyager ? (voyager.rangeKm / C_KM_S) * 1000 : DAY_MS;
-
-  const mine: Position[] = [];
-  if (simNow !== null) {
-    for (const p of pings) {
-      const t = timelines.get(p.id);
-      if (!t) continue;
-      const pos = pingPosition(t, simNow);
-      if (pos.phase !== "home") mine.push(pos);
-    }
-  }
-
-  const others: Position[] = [];
-  if (simNow !== null) {
-    for (const dep of departures) {
-      const age = simNow - dep;
-      if (age < oneWayMs) others.push({ phase: "outbound", km: (C_KM_S * age) / 1000 });
-      else if (age < 2 * oneWayMs) others.push({ phase: "reply", km: (C_KM_S * (2 * oneWayMs - age)) / 1000 });
-    }
-  }
+  // What the track draws at any moment. Rebuilt after each render so the
+  // canvas loop always sees the latest pings, counts, warp and scale.
+  const frameRef = useRef<(realMs: number) => TrackFrame>(() => EMPTY_FRAME);
+  useLayoutEffect(() => {
+    frameRef.current = (real: number) => {
+      const sim = real + offset(real);
+      const voyagerNow = data ? sample(data.geo, sim) : null;
+      const oneWayMs = voyagerNow ? (voyagerNow.rangeKm / C_KM_S) * 1000 : DAY_MS;
+      const mine: Position[] = [];
+      for (const p of pings) {
+        const t = timelines.get(p.id);
+        if (!t) continue;
+        const pos = pingPosition(t, sim);
+        if (pos.phase !== "home") mine.push(pos);
+      }
+      const others: Position[] = [];
+      for (const dep of departures) {
+        const age = sim - dep;
+        if (age < oneWayMs) others.push({ phase: "outbound", km: (C_KM_S * age) / 1000 });
+        else if (age < 2 * oneWayMs) others.push({ phase: "reply", km: (C_KM_S * (2 * oneWayMs - age)) / 1000 });
+      }
+      return { scale, voyagerKm: voyagerNow?.rangeKm ?? null, mine, others };
+    };
+  });
 
   const latest = pings[0];
   const latestTimeline = latest ? timelines.get(latest.id) : null;
@@ -97,8 +103,8 @@ export function PingSection() {
   const summary = counts && realNow !== null ? summarizeCounts(counts, realNow) : null;
 
   function setSpeed(factor: number) {
-    if (realNow === null) return;
-    setWarp(factor === 1 && ahead === 0 ? LIVE : { factor, t0: realNow, offset0: offset(realNow) });
+    const t = currentTime(); // exact, so switching speeds never jumps the track
+    setWarp(factor === 1 && ahead === 0 ? LIVE : { factor, t0: t, offset0: offset(t) });
   }
 
   function send() {
@@ -182,11 +188,8 @@ export function PingSection() {
 
       <PingTrack
         className={s.track}
-        scale={scale}
-        voyagerKm={voyager?.rangeKm ?? null}
-        mine={mine}
-        others={others}
-        label={`Track from Earth to Voyager 1 on a ${scale === "log" ? "logarithmic" : "true"} scale, with ${mine.length} of your pings and ${others.length} others in flight.`}
+        frame={frameRef}
+        label={`Track from Earth to Voyager 1 on a ${scale === "log" ? "logarithmic" : "true"} scale, showing your pings and everyone else's in flight.`}
       />
 
       <div className={s.controls}>

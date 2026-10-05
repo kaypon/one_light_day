@@ -2,8 +2,12 @@ import { hashIp, isSameOrigin, readPings, recordPing } from "@/lib/pingStore";
 import { getReader, getWriter } from "@/lib/redis";
 
 const NO_STORE = { "Cache-Control": "no-store" };
-// Everyone sees the same counts, so the CDN can serve them a minute at a time.
-const SHARED = { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" };
+// Everyone sees the same counts, so Vercel's CDN serves them a minute at a
+// time. Browsers never cache them, so nobody is shown a stale count.
+const SHARED = {
+  "Cache-Control": "no-store",
+  "Vercel-CDN-Cache-Control": "max-age=60, stale-while-revalidate=300",
+};
 
 const unavailable = () => Response.json({ error: "unavailable" }, { status: 503, headers: NO_STORE });
 
@@ -31,9 +35,11 @@ export async function POST(request: Request) {
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "unknown";
   try {
-    const result = await recordPing(store, hashIp(ip, salt), Date.now());
+    const now = Date.now();
+    const result = await recordPing(store, hashIp(ip, salt), now);
     if (!result.ok) return Response.json({ error: result.reason }, { status: 429, headers: NO_STORE });
-    return Response.json({ total: result.total }, { headers: NO_STORE });
+    // Fresh counts straight after the write, so the sender's page is exact.
+    return Response.json(await readPings(store, now), { headers: NO_STORE });
   } catch {
     return unavailable();
   }

@@ -7,8 +7,12 @@ const MAX_CHARS = 500_000;
 const CONFIG_TTL_MS = 86_400_000;
 
 const NO_STORE = { "Cache-Control": "no-store" };
-// NASA updates the feed every few seconds; one shared copy per 30 s keeps us a polite client.
-const SHARED = { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" };
+// NASA updates the feed every few seconds; one shared copy per 30 s on
+// Vercel's CDN keeps us a polite client. Browsers don't cache it.
+const SHARED = {
+  "Cache-Control": "no-store",
+  "Vercel-CDN-Cache-Control": "max-age=30, stale-while-revalidate=60",
+};
 
 async function fetchText(url: string): Promise<string> {
   const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(5000) });
