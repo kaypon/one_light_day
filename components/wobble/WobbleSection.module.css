@@ -44,9 +44,10 @@
   align-items: center;
 }
 
+/* Vertical swipes still scroll the page; only Earth's handle captures touch. */
 .diagram {
   display: block;
-  touch-action: none;
+  touch-action: pan-y;
   cursor: grab;
   overflow: visible;
 }
@@ -91,6 +92,7 @@
 .earth {
   cursor: grab;
   outline: none;
+  touch-action: none;
 }
 
 .earth:focus-visible .earthBody {
