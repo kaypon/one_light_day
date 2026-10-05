@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "ephemeris": "node scripts/fetch-ephemeris.mts"
+    "ephemeris": "node scripts/fetch-ephemeris.mts",
+    "check:secrets": "node scripts/check-secrets.mts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
