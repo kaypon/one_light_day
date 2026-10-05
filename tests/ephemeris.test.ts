@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import daily from "@/public/data/voyager1-daily.json";
 import fixture from "./fixtures/horizons-geo-6h.json";
 import { LIGHT_DAY_KM, MILESTONE_MS } from "@/lib/constants";
-import { findCrossing, lightTimeSec, sample, seriesFrom } from "@/lib/ephemeris";
+import { findCrossing, lightDayMoments, lightTimeSec, sample, seriesFrom } from "@/lib/ephemeris";
 
 const geo = seriesFrom(daily, "geo");
 const HOUR = 3_600_000;
@@ -53,6 +53,24 @@ describe("findCrossing", () => {
 
   it("returns null for a distance the data never reaches", () => {
     expect(findCrossing(geo, LIGHT_DAY_KM * 2)).toBeNull();
+  });
+});
+
+describe("lightDayMoments", () => {
+  const helio = seriesFrom(daily, "helio");
+  const moments = lightDayMoments(geo, helio)!;
+  const MIN = 60_000;
+
+  it("puts the geometric moment on NASA's time", () => {
+    expect(Math.abs(moments.geometric - MILESTONE_MS)).toBeLessThan(2_000);
+  });
+
+  it("matches Horizons: a command sent after Nov 17 18:24:45 UTC needs over a day", () => {
+    expect(Math.abs(moments.uplinkSent - Date.UTC(2026, 10, 17, 18, 24, 45))).toBeLessThan(MIN);
+  });
+
+  it("matches Horizons: light received after Nov 19 02:17:27 UTC left over a day earlier", () => {
+    expect(Math.abs(moments.downlinkReceived - Date.UTC(2026, 10, 19, 2, 17, 27))).toBeLessThan(MIN);
   });
 });
 

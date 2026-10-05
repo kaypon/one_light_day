@@ -1,6 +1,9 @@
-import { C_KM_S } from "./constants";
+import { C_KM_S, LIGHT_DAY_KM, SECONDS_PER_DAY } from "./constants";
 
-/** Shape of public/data/voyager1-daily.json (see scripts/fetch-ephemeris.mts). */
+/** Where the daily data is served from (public/data, written by scripts/fetch-ephemeris.mts). */
+export const EPHEMERIS_URL = "/data/voyager1-daily.json";
+
+/** Shape of that file. */
 export type EphemerisFile = {
   startMs: number;
   stepMs: number;
@@ -53,6 +56,24 @@ export function sample(series: Series, tMs: number): Sample | null {
     rateKmS:
       ((p1 - p0) * (6 * s - 6 * s2) + m0 * (3 * s2 - 4 * s + 1) + m1 * (3 * s2 - 2 * s)) / stepSec,
   };
+}
+
+/**
+ * Three honest answers to "when is it one light-day away?"
+ * - uplinkSent: after this, a signal sent from Earth takes more than a day to reach Voyager
+ *   (it keeps flying away while the signal chases it).
+ * - geometric: Earth and Voyager exactly one light-day apart at the same instant (NASA's time).
+ * - downlinkReceived: after this, light reaching Earth left Voyager more than a day earlier.
+ * Voyager moves ~17 km/s × 86,400 s ≈ 1.46M km during the trip, which shifts each answer ~16 hours.
+ */
+export function lightDayMoments(geo: Series, helio: Series) {
+  const geometric = findCrossing(geo, LIGHT_DAY_KM);
+  if (geometric === null) return null;
+  const drift = sample(helio, geometric)!.rateKmS * SECONDS_PER_DAY;
+  const uplinkSent = findCrossing(geo, LIGHT_DAY_KM - drift);
+  const downlinkReceived = findCrossing(geo, LIGHT_DAY_KM + drift);
+  if (uplinkSent === null || downlinkReceived === null) return null;
+  return { uplinkSent, geometric, downlinkReceived };
 }
 
 /** First instant the range climbs through `targetKm`, to the millisecond. Null if it never does. */

@@ -1,0 +1,213 @@
+/* Coordinates: Earth's center sits --inset from the left edge, the end mark
+   --inset from the right, and the middle mark --b to the left of the end. */
+.drawing {
+  --inset: 0.75rem;
+  --b: clamp(9.5rem, 30%, 17rem);
+  --mid: calc(100% - var(--inset) - var(--b));
+  position: relative;
+  padding-top: 1.6rem;
+  color: var(--ink);
+}
+
+.objects {
+  position: relative;
+  height: 2.5rem;
+}
+
+.lineA,
+.lineB {
+  position: absolute;
+  top: 50%;
+  height: 0;
+}
+
+.lineA {
+  left: var(--inset);
+  right: calc(var(--inset) + var(--b));
+  border-top: 1.5px solid var(--ink);
+  transform-origin: left center;
+  animation: draw 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Before: open space Voyager hasn't crossed yet. After: ground it has. */
+.lineB {
+  left: var(--mid);
+  right: var(--inset);
+  border-top: 1.5px dashed var(--muted);
+}
+
+.drawing[data-phase="after"] .lineB {
+  border-top: 1.5px solid var(--signal);
+}
+
+/* "Not to scale": the break sits a third of the way along. */
+.break {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--inset) + (100% - 2 * var(--inset) - var(--b)) * 0.36);
+  translate: -50% -50%;
+  display: flex;
+  color: var(--ink);
+  animation: appear 200ms 500ms both;
+}
+
+.mark {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  translate: -50% -50%;
+  animation: appear 250ms 950ms both;
+}
+
+.earth {
+  left: var(--inset);
+  animation: none;
+}
+
+.mid {
+  left: var(--mid);
+}
+
+.end {
+  left: calc(100% - var(--inset));
+}
+
+.markLabel {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  left: 50%;
+  translate: -50% 0;
+  font-size: var(--t-small);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.earth .markLabel {
+  left: 0;
+  translate: 0 0;
+}
+
+.end .markLabel {
+  left: auto;
+  right: 0;
+  translate: 0 0;
+}
+
+.signal {
+  color: var(--signal-text);
+}
+
+.datumLine {
+  display: block;
+  height: 2.6rem;
+  border-left: 2px dashed var(--signal);
+}
+
+/* Dimensions: extension lines up, dimension line with arrowheads, label below. */
+.dims {
+  position: relative;
+  height: 3.6rem;
+}
+
+.dim {
+  position: absolute;
+  top: 0;
+  height: 1.1rem;
+  border-inline: 1px solid var(--muted);
+}
+
+.dim::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0.7rem;
+  border-top: 1px solid currentColor;
+}
+
+.dimA {
+  left: var(--inset);
+  right: calc(var(--inset) + var(--b));
+  color: var(--ink);
+}
+
+.dimB {
+  left: var(--mid);
+  right: var(--inset);
+  color: var(--signal);
+  border-color: var(--signal);
+}
+
+.arrowL,
+.arrowR {
+  position: absolute;
+  top: calc(0.7rem - 3.5px);
+  width: 9px;
+  height: 7px;
+  background: currentColor;
+}
+
+.arrowL {
+  left: 0;
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+
+.arrowR {
+  right: 0;
+  clip-path: polygon(100% 50%, 0 0, 0 100%);
+}
+
+.dimLabel {
+  position: absolute;
+  top: 1.35rem;
+  left: 50%;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: var(--t-small);
+  line-height: 1.35;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.dimB .dimLabel {
+  color: var(--signal-text);
+}
+
+.dimNote {
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .drawing {
+    --b: 9.5rem;
+  }
+
+  .dims {
+    height: 5.4rem;
+  }
+
+  /* The short span can't hold its label: hang it off the right edge, one
+     line below the distance so the two never collide. */
+  .dimB .dimLabel {
+    top: 2.75rem;
+    left: auto;
+    right: 0;
+    translate: 0 0;
+    align-items: flex-end;
+  }
+}
+
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
